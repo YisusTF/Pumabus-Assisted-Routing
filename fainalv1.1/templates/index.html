@@ -116,8 +116,8 @@
         if (ruta in data) {
             data[ruta].forEach(est => {
                 const op = document.createElement("option");
-                op.value = est.replace("_", " ");
-                op.textContent = est.replace("_", " ");
+                op.value = est;
+                op.textContent = est.replace(/_/g, " ");
                 estSel.appendChild(op);
             });
         }
