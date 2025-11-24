@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pumabus Assisted Travel</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="image-box">
+            <img src="/static/img/logo.png" alt="PumabusLogo">
+        </div>
+        <h1>PumaBus Assisted Travel</h1>
+    </header>
+
+    <main class="content">
+        <div class="Options">
+            <form action="/buscar" method="POST" style="display: contents;">
+                <section class="column">
+                    <div class="image-box">
+                        <img id="img_origen" src="/static/img/routes/default.jpg" alt="Route preview">
+                    </div>
+                    <div class="Dropdown-label">
+                        <select id="ruta_origen" name="ruta_origen" class="dropdown" required>
+                            <option value="">From:</option>
+                            {% for r in routes %}
+                                <option value="{{ r }}">{{ r }}</option>
+                            {% endfor %}
+                        </select>
+                        <select id="estacion_origen" name="estacion_origen" class="dropdown" required>
+                            <option value="">Choose a route first</option>
+                        </select>
+                    </div>
+                </section>
+                <div class="button-group">
+                    <button type="button" class="button_gnrc" onclick="toggleFuzzy()">Toggle Fuzzy Search</button>
+                    <div class="fuzzy-cont" id="fuzzy-panel" style="display: none;">
+                        <h3 id="fuzzy-text">Fuzzy Preferences</h3>
+                        <div class="fuzzy-block">
+                            <label><strong>Weather Sensitivity:</strong></label><br>
+                            <label><input type="radio" name="w_weather" value="0.0" checked> Very Low</label>
+                            <label><input type="radio" name="w_weather" value="0.25"> Low</label>
+                            <label><input type="radio" name="w_weather" value="0.5"> Medium</label>
+                            <label><input type="radio" name="w_weather" value="0.75"> High</label>
+                            <label><input type="radio" name="w_weather" value="1.0"> Very High</label>
+                        </div>
+                        <div class="fuzzy-block">
+                            <label><strong>Noise Sensitivity:</strong></label><br>
+                            <label><input type="radio" name="w_noise" value="0.0" checked> Very Low</label>
+                            <label><input type="radio" name="w_noise" value="0.25"> Low</label>
+                            <label><input type="radio" name="w_noise" value="0.5"> Medium</label>
+                            <label><input type="radio" name="w_noise" value="0.75"> High</label>
+                            <label><input type="radio" name="w_noise" value="1.0"> Very High</label>
+                        </div>
+                        <div class="fuzzy-block">
+                            <label><strong>Safety Sensitivity:</strong></label><br>
+                            <label><input type="radio" name="w_safety" value="0.0" checked> Very Low</label>
+                            <label><input type="radio" name="w_safety" value="0.25"> Low</label>
+                            <label><input type="radio" name="w_safety" value="0.5"> Medium</label>
+                            <label><input type="radio" name="w_safety" value="0.75"> High</label>
+                            <label><input type="radio" name="w_safety" value="1.0"> Very High</label>
+                        </div>
+                        <input type="hidden" id="fuzzy_active" name="fuzzy_active" value="0">
+                    </div>
+                    <button type="submit" class="button_gnrc">Go!</button>
+                </div>
+                <section class="column">
+                    <div class="image-box">
+                        <img id="img_destino" src="/static/img/routes/default.jpg" alt="Route preview">
+                    </div>
+                    <div class="Dropdown-label">
+                        <select id="ruta_destino" name="ruta_destino" class="dropdown" required>
+                            <option value="">To:</option>
+                            {% for r in routes %}
+                                <option value="{{ r }}">{{ r }}</option>
+                            {% endfor %}
+                        </select>
+                        <select id="estacion_destino" name="estacion_destino" class="dropdown" required>
+                            <option value="">Choose a route first</option>
+                        </select>
+                    </div>
+                </section>
+            </form>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© 2025 PumaBus</p>
+    </footer>
+</body>
+
+<!-- Script que hace las listas dependientes -->
+<script>
+    const data = {{ route_to_stops | tojson }};
+
+    function toggleFuzzy() {
+        const panel = document.getElementById("fuzzy-panel");
+        const flag = document.getElementById("fuzzy_active");
+
+        if (panel.style.display === "none") {
+            panel.style.display = "block";
+            flag.value = "1";
+        } else {
+            panel.style.display = "none";
+            flag.value = "0";
+        }
+    }
+
+    function actualizar(rutaSelectId, estacionSelectId) {
+        const ruta = document.getElementById(rutaSelectId).value;
+        const estSel = document.getElementById(estacionSelectId);
+
+        estSel.innerHTML = '<option value="">Select:</option>';
+
+        if (ruta in data) {
+            data[ruta].forEach(est => {
+                const op = document.createElement("option");
+                op.value = est.replace("_", " ");
+                op.textContent = est.replace("_", " ");
+                estSel.appendChild(op);
+            });
+        }
+    }
+
+    function updateImage(selectId, imgId) {
+        const selectedRoute = document.getElementById(selectId).value;
+        const img = document.getElementById(imgId);
+
+        if (!selectedRoute) {
+            img.src = "/static/img/routes/default.jpg";
+            return;
+        }
+
+        img.src = `/static/img/routes/${selectedRoute}.jpg`;
+    }
+
+    document.getElementById("ruta_origen")
+        .addEventListener("change", () => actualizar("ruta_origen", "estacion_origen"));
+
+    document.getElementById("ruta_destino")
+        .addEventListener("change", () => actualizar("ruta_destino", "estacion_destino"));
+
+    document.getElementById("ruta_origen").addEventListener("change", function() {
+        updateImage("ruta_origen", "img_origen");
+    });
+    document.getElementById("ruta_destino").addEventListener("change", function() {
+        updateImage("ruta_destino", "img_destino");
+    });
+</script>
+
+</html>
